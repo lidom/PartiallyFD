@@ -1,0 +1,9 @@
+export(calcFTC)
+importFrom("methods", "hasArg")
+importFrom("stats", ".nknots.smspl", "BIC", "coef", "cor", "lm",
+		 "median", "na.omit", "optim", "pnorm", "rnorm", "runif")
+importFrom("fda" , "eval.basis")
+importFrom("grDevices", "col2rgb", "rgb")
+
+
+
