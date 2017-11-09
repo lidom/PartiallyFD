@@ -12,7 +12,7 @@ library("devtools")
 install_github("stefanrameseder/PartiallyFD")
 library("PartiallyFD")
 ```
-##### Provide Data
+#### Provide Data
 ```r
 data(partObsBidcurves)
 attach(partObsBidcurves)
@@ -108,4 +108,4 @@ lines(x = md_dis, y = res$krausMean, col = "darkred", lwd = 3, lty = "dashed")
 axis(side = 1, at = seq(xLim[1], xLim[2], 250),  labels =  paste0(seq(xLim[1], xLim[2], 250), " MW"), cex.axis = scl)	
 axis(side = 2, at = seq(yLim[1], yLim[2], 1000),  labels =  paste0(seq(yLim[1], yLim[2], 1000)), cex.axis = scl)	
 matplot(x = md_dis, y = combinedNEG_woOutlier, type = "l", col = PartiallyFD:::addAlpha("black", 0.3), ylim = yLim, xlim = xLim, lty = 1, add = TRUE)
-```r						 
+```						 
