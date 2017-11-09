@@ -8,7 +8,6 @@ function(n, xi_1_mean, ev, suppliedSettings){ # xi_1_mean = 5; n = 1000
     settings <- list(sigma_sc = 3)       
     # 	
     if(hasArg(settings)){
-          suppliedSettings 		<- list(...)$settings
     	  #print(suppliedSettings)
           matching 				<- intersect(names(settings), names(suppliedSettings))
           settings[matching] 	<- suppliedSettings[matching]

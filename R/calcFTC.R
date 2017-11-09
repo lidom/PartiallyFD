@@ -1,5 +1,4 @@
-calcFTC <-
-function(fds, comp_dom, basis_seq , base = "fourier", maxBasisLength = 25, basisChoice = "Med", alpha = 0.05, B = 1000, f_stat = f_stat2, derFds = FALSE){
+calcFTC <- function(fds, comp_dom, basis_seq , base = "fourier", maxBasisLength = 25, basisChoice = "Med", alpha = 0.05, B = 1000, f_stat = f_stat2, derFds = FALSE){
 	### Performs the estimation of the sample
 	### Input:
 	# - fds: a functional data sample (p x n)
@@ -37,7 +36,7 @@ function(fds, comp_dom, basis_seq , base = "fourier", maxBasisLength = 25, basis
 	}
 	
 	### Choose a number of basis elements b
-	bicMat 		<- selBasisLength(X = fds, comp_dom, base, basis_seq)
+	bicMat 		<- selBasisLength_sd(X = fds, small_dom, comp_dom, base, basis_seq)
 	
 	### Select an overall basis length b via Median or Max Basis Length   
 	selBasis  	<- get(paste0("calc",basisChoice,"BasisDim"))(bicMat, basis_seq) 		 	
