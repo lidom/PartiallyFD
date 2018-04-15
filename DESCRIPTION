@@ -2,9 +2,9 @@ Package: PartiallyFD
 Type: Package
 Title: Partially Observed Functional Data: The Case of Systematically Missings
 Version: 1.0
-Date: 2017-06-28
+Date: 2017-04-15
 Author: Stefan Rameseder [aut , cre], Dominik Liebl [aut]
 Maintainer:  Stefan Rameseder <stefan.rameseder@ur.de>
 Description: Code as R Package accompanying the Paper "Partially Observed Functional Data: The Case of Systematically Missings" by Dominik Liebl and Stefan Rameseder.
 License: GPL-2
-Depends: R (>= 3.1.0) , methods, fda
+Depends: R (>= 3.1.0) , methods, fda, mclust

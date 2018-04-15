@@ -93,102 +93,200 @@ Stefan Rameseder
 %% ~~objects to See Also as \code{\link{help}}, ~~~
 }
 \examples{
-data(partObsBidcurves)
-attach(partObsBidcurves)
 
-
+data(log_partObsBidcurves)
+attach(log_partObsBidcurves)
 
 ## Load the combined data for NEG
-combinedNEG <- cbind(bc_fds[["NEG_HT"]], bc_fds[["NEG_NT"]])
+combinedNEG <- cbind(log_bc_fds[["NEG_HT"]], log_bc_fds[["NEG_NT"]])
 
-matplot(x = md_dis, y=combinedNEG, ylim = c(0,14000), # dim(combinedNEG)
-        col = "black", type = "l", lwd = 1,
+matplot(x = md_dis, y=combinedNEG, ylim = c(0,10), # dim(combinedNEG)
+        col = PartiallyFD:::addAlpha("black", 0.2), type = "l", lwd = 1,
         ylab = "", xaxt = "n", yaxt = "n", lty = "solid")
 
 ## Exclude outliers according to Ocker, F., Ehrhart, K.-M., Ott, M. (2015):
-## "An Economic Analysis of the German Secondary Balancing Power Market?, Working Paper (under review)."
+## "An Economic Analysis of the German Secondary Balancing Power Market, Working Paper (under review)."
 firstOutlier 	<- which.max(apply(combinedNEG, 2, max, na.rm = TRUE))
 secondOutlier 	<- which.max(apply(combinedNEG[ ,-firstOutlier], 2, max, na.rm = TRUE))
 combinedNEG_woOutlier <- combinedNEG[ ,-c(firstOutlier, secondOutlier+1)]
 
-
-matplot(x = md_dis, y=combinedNEG_woOutlier, ylim = c(0,20000), # dim(combinedNEG)
-        col = "black", type = "l", lwd = 1,
+matplot(x = md_dis, y=combinedNEG_woOutlier, ylim = c(0,10), # dim(combinedNEG)
+        col = PartiallyFD:::addAlpha("black", 0.2), type = "l", lwd = 1,
         ylab = "", xaxt = "n", yaxt = "n", lty = "solid")
 
+## Observe point mass at 0 and mixture of two normals by calculating 
+## Principal Components and their Scores
+## Find components on "stable" domain [400MW, 1200MW)
+d_max       <- which.min(md_dis < 1200)
+d_min       <- which.max(md_dis >= 400)
 
-## Load the corresponding data for the derivatives
-combinedNEG_der <- cbind(bc_fds_der[["NEG_HT"]], bc_fds_der[["NEG_NT"]])
-combinedNEG_woOutlier_der <- combinedNEG_der[ ,-c(firstOutlier, secondOutlier+1)]
- 
+## Calculate Eigenvectors and Scores
+X_mat       <- combinedNEG_woOutlier[d_min:d_max, ]
+X_cent_mat  <- X_mat - rowMeans(X_mat)
+Cov_mat     <- X_cent_mat \%*\% t(X_cent_mat) / ncol(X_cent_mat)
+eigen_obj   <- eigen(Cov_mat)
+
+## First five cumulative Variances
+c(cumsum(eigen_obj$values)/sum(eigen_obj$values))[1:5]
+
+## Standardizing to L2-norm == 1 (assuming [a,b]=[0,1])
+eigenvec_1  <- eigen_obj$vectors[,1] * sqrt(length(d_min:d_max))
+eigenvec_1  <- eigenvec_1 * sign(sum(eigenvec_1))
+PC_scores   <- c(eigenvec_1 \%*\% X_cent_mat)/length(d_min:d_max)
+
+
+## Remove point-mass on minimal PC-scores (correspond to zero-functions) 
+quantile(PC_scores, seq(0, 0.1, 0.005))
+thr         <- -5.16
+scoreIndicesProbMass <- PC_scores <= thr; 
+PC_scores_red <- PC_scores[PC_scores > thr]
+
+##
+mclust.obj <- densityMclust(data = PC_scores_red, G=2) 
+clust_vec  <- mclust.obj$classification
+
+## Cluster Plot
+par(mfrow=c(1,1), mar=c(4.5,4,2.5,1)+0.1, family = "sans")
+plotDensityMclust1(mclust.obj, xlab="First FPC-Scores (99.8\% Explained Variance)", main="")
+mtext(text = "Normal Mixture Cluster Result", side = 3, line = 1.25, cex=1.2)
+hist(PC_scores_red, add=TRUE, freq = FALSE, breaks = 12)
+points(x =              PC_scores_red[clust_vec==2], 
+       y = rep(0,length(PC_scores_red[clust_vec==2])), col = PartiallyFD:::addAlpha("red",1), bg=PartiallyFD:::addAlpha("red",1),
+       pch=21, cex=1)
+points(x =              PC_scores_red[clust_vec==1], 
+       y = rep(0,length(PC_scores_red[clust_vec==1])), col = PartiallyFD:::addAlpha("blue",1), bg=PartiallyFD:::addAlpha("blue",1), 
+       pch=22, cex=1)
+points(x = PC_scores[PC_scores < thr], 
+       y = seq(0,0.1,len=length(PC_scores[PC_scores < thr])), col=PartiallyFD:::addAlpha("darkorange",1), bg=PartiallyFD:::addAlpha("darkorange",1),
+       pch=23, cex=1)
+##
+legend("topleft", legend = c("High-Price Cluster", "Low-Price Cluster", "Zero-Functions"), 
+       pt.cex=1,
+       pch=c(21,22,23), 
+       pt.bg = c(PartiallyFD:::addAlpha("red",1), PartiallyFD:::addAlpha("blue",1), PartiallyFD:::addAlpha("darkorange",1)), 
+       col=c(PartiallyFD:::addAlpha("red",1), PartiallyFD:::addAlpha("blue",1), PartiallyFD:::addAlpha("darkorange",1)), bty="n")
+dev.off()
+
+## Testing normality using the KS-Test:
+ks.test(PC_scores_red[clust_vec==2], "pnorm", mean(PC_scores_red[clust_vec==2]), sd(PC_scores_red[clust_vec==2]))
+
+## Vector of indices of the 'Low-Price Cluster': these will be excluded
+scoreIndicesClust <- clust_vec==1
+paste0("Point mass at Zero: ",sum(scoreIndicesProbMass) ," and Low-Price Cluster:", sum(scoreIndicesClust))
+
+## Reduce Functions and Derivatives by Low-Price Cluster and Point Mass Curves 
+reducedDomSample <- combinedNEG_woOutlier[ , !scoreIndicesProbMass]
+combinedNEG_woOutlier <- reducedDomSample[ , !scoreIndicesClust]
+
+matplot(combinedNEG_woOutlier, type = "l", col = PartiallyFD:::addAlpha("black", 0.3))
+
+## Reduce Derivates by Outliers, Low-Price Cluster, and Point Mass Curves
+combinedNEG_der <- cbind(log_bc_fds_der[["NEG_HT"]], log_bc_fds_der[["NEG_NT"]])
+combinedNEG_woOutlier_der <- combinedNEG_der[ , -c(firstOutlier, secondOutlier+1)]
+reducedDomSample <- combinedNEG_woOutlier_der[ , !scoreIndicesProbMass]
+combinedNEG_woOutlier_der <- reducedDomSample[ , !scoreIndicesClust]
 
 ## Application of the ftc Estimator
 maxBasisLength 		<- 51		# The Basis Selection Criterion in BIC 
 basisSel			<- "Med" 	# The Basis Selection Criterion in BIC 
 B					<- 1000 	# Number of Bootstrap Replications
 basis_choice		<- "fourier"# The basis where the functions are projected onto
-derFds 				<- combinedNEG_woOutlier_der
 res 				<- calcFTC(fds = combinedNEG_woOutlier, comp_dom = md_dis,
-								 basis_seq = seq(3,maxBasisLength,2), base = basis_choice,
-								 maxBasisLength = maxBasisLength, basisChoice = basisSel,
-								 alpha = 0.05, B = B, derFds = combinedNEG_woOutlier_der)
+                   basis_seq = seq(3,maxBasisLength,2), base = basis_choice,
+                   maxBasisLength = maxBasisLength, basisChoice = basisSel,
+                   alpha = 0.05, B = B, derFds = combinedNEG_woOutlier_der)
 
 ## Romano Wolf Decisions
 PartiallyFD:::checkFtcHypothesis(res$romWolf$ent)
-res$romWolf$pval
 
+## Calculate Confidence Intervals
+alpha           <- 0.05
+nPerP           <- apply(combinedNEG_woOutlier, 1, function(x) sum(!is.na(x))) 
+ftcSD           <- sqrt(diag(res$ftcCov))/sqrt(nPerP)
+critValue       <- qnorm(1-(alpha/2))
+CISummand       <- critValue * ftcSD
+ftcCI_plus      <- res$ftcMean + CISummand
+ftcCI_minus     <- res$ftcMean - CISummand
 
+# Kraus Confidence Intervalls
+krausSD         <- sqrt(diag(res$krausCov))/sqrt(nPerP)
+CISummand       <- critValue * krausSD
+krausCI_plus    <- res$krausMean + CISummand
+krausCI_minus   <- res$krausMean - CISummand
 
-## #########################################################################
 ## Both empirical plots as in the paper
-
-maxVals     <- apply(combinedNEG_woOutlier, 2, max, na.rm = TRUE)							 
-scl			<- 1.5
+scl.axs             <- 1.9
+p                   <- length(res$krausMean)
+p_seq               <- seq(1,p,8)
+p.cex               <- 1.2
+maxVals     		<- apply(combinedNEG_woOutlier, 2, max, na.rm = TRUE)							 
 
 
 layout(matrix(c(1,1,2), nrow = 1, ncol = 3, byrow = TRUE))
 par(mar=c(5.1, 5.1, 2.1, 1.1))
-matplot(x = 0, y = 0, type = "l", col =PartiallyFD:::addAlpha("black", 0.3), ylim = c(0, 14500), xlim = c(0, 2500), lty = 1, xaxt = "n", yaxt = "n",
-        ylab = "Capacity Price in (Euro/MW)/week", xlab = "Electricity Demand in MW", cex.lab=scl+0.45)
+matplot(x = 0, y = 0, type = "l", col = PartiallyFD:::addAlpha("black", 0.2), ylim = c(0, 10), xlim = c(0, 2500), lty = 1, xaxt = "n", yaxt = "n",
+        ylab = "Log Price [Log(Euro/MW)/week]", xlab = "Electricity Demand [MW]", cex.lab=scl.axs+0.45)
+
 for(i in 1:length(maxVals)){ # i = 283
 	ind <- which.max(combinedNEG_woOutlier[!is.na(combinedNEG_woOutlier[ ,i]),i])
     if(ind !=1){
 		abline(v = md_dis[ind],lwd = 2 , col = "lightblue")
 	} 
 }
-	
-abline(v=0, col = "white", lwd = 2)
-matplot(x = md_dis, y = combinedNEG_woOutlier, type = "l", col = "black", ylim = c(0, 5000), lty = 1, add = TRUE)
+matplot(x = md_dis, y = combinedNEG_woOutlier, type = "l", col = PartiallyFD:::addAlpha("black", 0.2), ylim = c(0, 10), lty = 1, add = TRUE)
 
-lines(x = md_dis, y = res$ftcMean, col = "blue", lwd = 3)
-lines(x = md_dis, y = res$krausMean, col = "darkred", lwd = 3, lty = "dashed")
-rect(1750,0,2500,5000,col = rgb(0.5,0.5,0.5,1/4))
-axis(side = 1, at = seq(0, 2500, 500),  labels =  paste0(seq(0, 2500, 500), " MW"), cex.axis = scl)	
-axis(side = 2, at = seq(0, 14000, 2000),  labels =  paste0(seq(0, 14000, 2000)), cex.axis = scl)	
-legend(	"topleft", col = c("black", "darkred", "blue", "lightblue"), inset = 0.01, cex=scl+ 0.2, pt.cex = scl,
-        lwd=c(1,3, 3, 3), lty = c("solid", "dashed", "solid","solid"),
-        legend = c(expression(paste(X[t])), expression(paste(hat(mu))), expression(paste(hat(mu)[FTC])), expression(paste(d[i]))))
-matplot(x = 0, y = 0, type = "l", col = PartiallyFD:::addAlpha("black", 0.3), ylim = c(0, 14500), xlim = c(0, 2500), lty = 1, xaxt = "n", yaxt = "n",
-        ylab = "Capacity Price in (Euro/MW)/week", xlab = "Electricity Demand in MW", cex.lab=scl+0.45, add = TRUE)
+points(x = md_dis[p_seq], y = res$ftcMean[p_seq], col = "blue", pch = 16, cex = p.cex)
+lines(x = md_dis, y = res$ftcMean, col = "blue", lwd = 2)
+points(x = md_dis[p_seq], y = res$krausMean[p_seq], col = "darkred", pch = 18, cex = p.cex)
+lines(x = md_dis, y = res$krausMean, col = "darkred", lwd = 2)
 
-yLim <- c(0,5000)
+polygon(x = c(md_dis, rev(md_dis)),
+        y = c(ftcCI_plus, rev(ftcCI_minus)),
+        col = PartiallyFD:::addAlpha("blue", 0.2), border = "blue", lwd = 1)
+polygon(x = c(md_dis, rev(md_dis)),
+        y = c(krausCI_plus, rev(krausCI_minus)),
+        col = PartiallyFD:::addAlpha("darkred", 0.2), border = "darkred", lwd = 1)
+
+yLim <- c(4,10)
 xLim <- c(1750, 2500)
-par(mar=c(5.1, 3.1, 2.1, 1.5))		
-matplot(x = md_dis, y = combinedNEG_woOutlier, type = "l", col = PartiallyFD:::addAlpha("black", 0.3), lty = 1, 
+
+rect(xLim[1],yLim[1],xLim[2],yLim[2],col = rgb(0.5,0.5,0.5,1/4))
+axis(side = 1, at = seq(0, 2500, 500),  labels =  paste0(seq(0, 2500, 500), " MW"), cex.axis = scl.axs)	
+axis(side = 2, at = seq(0, 10, 2),  labels =  paste0(seq(0, 10, 2)), cex.axis = scl.axs)	
+legend(	"topleft", col = c("black", "darkred", "blue", "lightblue"), inset = 0.01, cex=scl.axs+ 0.4, pt.cex = scl.axs,
+        lwd=c(1,2, 2, 3), lty = c("solid", "solid", "solid","solid"),
+        pch=c(NA,18,16, NA),  
+        legend = c(expression(paste(X[t])), expression(paste(hat(mu))), expression(paste(hat(mu)[FTC])), expression(paste(d[i]))))
+matplot(x = 0, y = 0, type = "l", col = PartiallyFD:::addAlpha("black", 0.2), ylim = c(0, 10), xlim = c(0, 2500), lty = 1, xaxt = "n", yaxt = "n",
+        ylab = "Log Price in (Log Euro/MW)/week", xlab = "Electricity Demand in MW", cex.lab=scl.axs+0.45, add = TRUE)
+
+
+par(mar=c(5.1, 3.1, 2.1, 2.1))		
+matplot(x = md_dis, y = combinedNEG, type = "l", col = PartiallyFD:::addAlpha("black", 0.2), lty = 1, 
         xaxt = "n", yaxt = "n", ylim = yLim, xlim = xLim,
-        ylab = "", xlab = "", cex.lab=scl+0.45)
-for(i in 1:length(maxVals)){ # i = 100
-    ind <- which.max(combinedNEG_woOutlier[ ,i])
+        ylab = "", xlab = "", cex.lab=scl.axs+0.45)
+for(i in 1:length(maxVals)){ # i = 283
+	ind <- which.max(combinedNEG_woOutlier[!is.na(combinedNEG_woOutlier[ ,i]),i])
     if(ind !=1){
 		abline(v = md_dis[ind],lwd = 2 , col = "lightblue")
 	} 
 }
 
-lines(x = md_dis, y = res$ftcMean, col = "blue", lwd = 3)
-lines(x = md_dis, y = res$krausMean, col = "darkred", lwd = 3, lty = "dashed")
-axis(side = 1, at = seq(xLim[1], xLim[2], 250),  labels =  paste0(seq(xLim[1], xLim[2], 250), " MW"), cex.axis = scl)	
-axis(side = 2, at = seq(yLim[1], yLim[2], 1000),  labels =  paste0(seq(yLim[1], yLim[2], 1000)), cex.axis = scl)	
-matplot(x = md_dis, y = combinedNEG_woOutlier, type = "l", col = PartiallyFD:::addAlpha("black", 0.3), ylim = yLim, xlim = xLim, lty = 1, add = TRUE)
+points(x = md_dis[p_seq], y = res$ftcMean[p_seq], col = "blue", pch = 16, cex = p.cex)
+lines(x = md_dis, y = res$ftcMean, col = "blue", lwd = 2)
+points(x = md_dis[p_seq], y = res$krausMean[p_seq], col = "darkred", pch = 18, cex = p.cex)
+lines(x = md_dis, y = res$krausMean, col = "darkred", lwd = 2)
+
+polygon(x = c(md_dis, rev(md_dis)),
+        y = c(ftcCI_plus, rev(ftcCI_minus)),
+        col = PartiallyFD:::addAlpha("blue", 0.2), border = "blue", lwd = 1)
+polygon(x = c(md_dis, rev(md_dis)),
+        y = c(krausCI_plus, rev(krausCI_minus)),
+        col = PartiallyFD:::addAlpha("darkred", 0.2), border = "darkred", lwd = 1)
+axis(side = 1, at = seq(xLim[1], xLim[2], 250),  labels =  paste0(seq(xLim[1], xLim[2], 250), " MW"), cex.axis = scl.axs)	
+axis(side = 2, at = seq(yLim[1], yLim[2], 2),  labels =  paste0(seq(yLim[1], yLim[2], 2)), cex.axis = scl.axs)	
+matplot(x = md_dis, y = combinedNEG, type = "l", col = PartiallyFD:::addAlpha("black", 0.3), ylim = yLim, xlim = xLim, lty = 1, add = TRUE)
+dev.off()
 }
 
 % Add one or more standard keywords, see file 'KEYWORDS' in the
