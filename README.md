@@ -27,7 +27,7 @@ matplot(x = md_dis, y=combinedNEG, ylim = c(0,10), # dim(combinedNEG)
         col = PartiallyFD:::addAlpha("black", 0.2), type = "l", lwd = 1,
         ylab = "", xaxt = "n", yaxt = "n", lty = "solid")
 ```
-### Exclude outliers according to Ocker, F., Ehrhart, K.-M., Ott, M. (2015): _An Economic Analysis of the German Secondary Balancing Power Market, Working Paper (under review)._
+### Exclude outliers
 ```r
 firstOutlier 	<- which.max(apply(combinedNEG, 2, max, na.rm = TRUE))
 secondOutlier 	<- which.max(apply(combinedNEG[ ,-firstOutlier], 2, max, na.rm = TRUE))
@@ -38,18 +38,6 @@ matplot(x = md_dis, y=combinedNEG_woOutlier, ylim = c(0,10), # dim(combinedNEG)
         ylab = "", xaxt = "n", yaxt = "n", lty = "solid")
 
 ```
-### Load the corresponding data for the derivatives !THIS IS A REPETITION OF THE CODE ABOVE!
-```r
-firstOutlier 	<- which.max(apply(combinedNEG, 2, max, na.rm = TRUE))
-secondOutlier 	<- which.max(apply(combinedNEG[ ,-firstOutlier], 2, max, na.rm = TRUE))
-combinedNEG_woOutlier <- combinedNEG[ ,-c(firstOutlier, secondOutlier+1)]
-
-matplot(x = md_dis, y=combinedNEG_woOutlier, ylim = c(0,10), # dim(combinedNEG)
-        col = PartiallyFD:::addAlpha("black", 0.2), type = "l", lwd = 1,
-        ylab = "", xaxt = "n", yaxt = "n", lty = "solid")
-
-```
-
 ## Exploratory Data Analysis (Figure 2)
 ```r
 # "stable" domain [400MW, 1200MW)
