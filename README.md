@@ -1,25 +1,25 @@
-### PartiallyFD
+# PartiallyFD
 This repository contains a R package for the Paper "Partially Observed Functional Data: The Case of Systematically Missing" by Dominik Liebl and Stefan Rameseder. Below, we present a demo for the installation of the package and the application of the estimator. 
 
-#### Installation of required packages
+## Installation of required packages
 ```r
 install.packages("devtools")
 install.packages("fda")
 install.packages("mclust")
-library(mclust)
+library("mclust")
 library("devtools")
 ```
-##### Installation of _PartiallyFD_-Package
+### Installation of _PartiallyFD_-Package
 ```r
 install_github("stefanrameseder/PartiallyFD")
 library("PartiallyFD")
 ```
-#### Provide Data
+### Provide Data
 ```r
 data(log_partObsBidcurves)
 attach(log_partObsBidcurves)
 ```
-###### Load the combined data for NEG 
+## Load the combined data for NEG 
 ```r
 combinedNEG <- cbind(log_bc_fds[["NEG_HT"]], log_bc_fds[["NEG_NT"]])
 
@@ -27,7 +27,7 @@ matplot(x = md_dis, y=combinedNEG, ylim = c(0,10), # dim(combinedNEG)
         col = PartiallyFD:::addAlpha("black", 0.2), type = "l", lwd = 1,
         ylab = "", xaxt = "n", yaxt = "n", lty = "solid")
 ```
-###### Exclude outliers according to Ocker, F., Ehrhart, K.-M., Ott, M. (2015):_An Economic Analysis of the German Secondary Balancing Power Market, Working Paper (under review)._
+### Exclude outliers according to Ocker, F., Ehrhart, K.-M., Ott, M. (2015): _An Economic Analysis of the German Secondary Balancing Power Market, Working Paper (under review)._
 ```r
 firstOutlier 	<- which.max(apply(combinedNEG, 2, max, na.rm = TRUE))
 secondOutlier 	<- which.max(apply(combinedNEG[ ,-firstOutlier], 2, max, na.rm = TRUE))
@@ -38,7 +38,7 @@ matplot(x = md_dis, y=combinedNEG_woOutlier, ylim = c(0,10), # dim(combinedNEG)
         ylab = "", xaxt = "n", yaxt = "n", lty = "solid")
 
 ```
-###### Load the corresponding data for the derivatives
+### Load the corresponding data for the derivatives !THIS IS A REPETITION OF THE CODE ABOVE!
 ```r
 firstOutlier 	<- which.max(apply(combinedNEG, 2, max, na.rm = TRUE))
 secondOutlier 	<- which.max(apply(combinedNEG[ ,-firstOutlier], 2, max, na.rm = TRUE))
@@ -50,28 +50,24 @@ matplot(x = md_dis, y=combinedNEG_woOutlier, ylim = c(0,10), # dim(combinedNEG)
 
 ```
 
-###### Observe point mass at 0 and mixture of two normals by calculating 
-###### Find components on "stable" domain [400MW, 1200MW)
+## Exploratory Data Analysis (Figure 2)
 ```r
+# "stable" domain [400MW, 1200MW)
 d_max       <- which.min(md_dis < 1200)
 d_min       <- which.max(md_dis >= 400)
-```
-###### Calculate Eigenvectors and Scores
-```r
+
+# Calculate Eigenvectors and Scores
 X_mat       <- combinedNEG_woOutlier[d_min:d_max, ]
 X_cent_mat  <- X_mat - rowMeans(X_mat)
 Cov_mat     <- X_cent_mat %*% t(X_cent_mat) / ncol(X_cent_mat)
 eigen_obj   <- eigen(Cov_mat)
 c(cumsum(eigen_obj$values)/sum(eigen_obj$values))[1:5]
-```
-###### Standardizing to L2-norm == 1 (assuming [a,b]=[0,1])
-```r
+
+# Standardizing to L2-norm == 1 (assuming [a,b]=[0,1])
 eigenvec_1  <- eigen_obj$vectors[,1] * sqrt(length(d_min:d_max))
 eigenvec_1  <- eigenvec_1 * sign(sum(eigenvec_1))
-PC_scores   <- c(eigenvec_1 %*% X_cent_mat)/length(d_min:d_max)
-```
-#### Remove point-mass on minimal PC-scores (correspond to zero-functions)
-```r
+
+# Remove point-mass on minimal PC-scores (zero-functions)
 quantile(PC_scores, seq(0, 0.1, 0.005))
 thr         <- -5.16
 scoreIndicesProbMass <- PC_scores <= thr; 
@@ -99,11 +95,12 @@ legend("topleft", legend = c("High-Price Cluster", "Low-Price Cluster", "Zero-Fu
        col=c(alpha("red",1), alpha("blue",1), alpha("darkorange",1)), bty="n")
 dev.off()
 ```
-###### Test Normality
+### Test Normality in High-Price Cluster
 ```r
 ks.test(PC_scores_red[clust_vec==2], "pnorm", mean(PC_scores_red[clust_vec==2]), sd(PC_scores_red[clust_vec==2]))
 ```
-###### Reduce Functions and Derivatives by Low-Price Cluster and Point Mass Curves
+
+### Reduce Sample by Low-Price and Zero-Function Clusters
 ```r
 reducedDomSample <- combinedNEG_woOutlier[ , !scoreIndicesProbMass]
 combinedNEG_woOutlier <- reducedDomSample[ , !scoreIndicesClust]
@@ -114,14 +111,12 @@ combinedNEG_der <- cbind(log_bc_fds_der[["NEG_HT"]], log_bc_fds_der[["NEG_NT"]])
 combinedNEG_woOutlier_der <- combinedNEG_der[ , -c(firstOutlier, secondOutlier+1)]
 reducedDomSample <- combinedNEG_woOutlier_der[ , !scoreIndicesProbMass]
 combinedNEG_woOutlier_der <- reducedDomSample[ , !scoreIndicesClust]
-```
-###### Vector of indices of the 'Low-Price Cluster': these will be excluded
-```r
+
 scoreIndicesClust <- clust_vec==1
 paste0("Point mass at Zero: ",sum(scoreIndicesProbMass) ," and Low-Price Cluster:", sum(scoreIndicesClust))
 ```
 
-#### Application of the ftc Estimator
+## Application 
 ```r
 maxBasisLength 		<- 51		# The Basis Selection Criterion in BIC 
 basisSel		<- "Med" 	# The Basis Selection Criterion in BIC 
@@ -132,10 +127,12 @@ res 			<- calcFTC(fds = combinedNEG_woOutlier, comp_dom = md_dis,
                    		maxBasisLength = maxBasisLength, basisChoice = basisSel,
                    		alpha = 0.05, B = B, derFds = combinedNEG_woOutlier_der)
 ```
-##### Romano Wolf Decision
+
+### Test-Procedure (See Section 3)
 ```r
 PartiallyFD:::checkFtcHypothesis(res$romWolf$ent)
 ```
+
 ### Calculate Confidence Intervalls
 ```r
 alpha           <- 0.05
@@ -152,13 +149,13 @@ krausCI_plus    <- res$krausMean + CISummand
 krausCI_minus   <- res$krausMean - CISummand
 ```
 
-#### Plot of the Application
+### Figure 3
 ```r
 scl.axs             <- 1.9
 p                   <- length(res$krausMean)
 p_seq               <- seq(1,p,8)
 p.cex               <- 1.2
-maxVals     		<- apply(combinedNEG_woOutlier, 2, max, na.rm = TRUE)							 
+maxVals     	    <- apply(combinedNEG_woOutlier, 2, max, na.rm = TRUE)	
 
 
 layout(matrix(c(1,1,2), nrow = 1, ncol = 3, byrow = TRUE))
