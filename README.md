@@ -19,7 +19,7 @@ library("PartiallyFD")
 data(log_partObsBidcurves)
 attach(log_partObsBidcurves)
 ```
-## Load the combined data for NEG 
+## Load data 
 ```r
 combinedNEG <- cbind(log_bc_fds[["NEG_HT"]], log_bc_fds[["NEG_NT"]])
 
