@@ -211,3 +211,10 @@ axis(side = 1, at = seq(xLim[1], xLim[2], 250),  labels =  paste0(seq(xLim[1], x
 axis(side = 2, at = seq(yLim[1], yLim[2], 2),  labels =  paste0(seq(yLim[1], yLim[2], 2)), cex.axis = scl.axs)	
 matplot(x = md_dis, y = combinedNEG, type = "l", col = PartiallyFD:::addAlpha("black", 0.3), ylim = yLim, xlim = xLim, lty = 1, add = TRUE)
 ```						 
+### Additional figure: Covariance plots for both estimators
+```r
+# install.packages("rgl")
+library(rgl)
+persp3d(x = md_dis, y =md_dis, z = res$ftcCov, col="skyblue", zlim = c(-1,5))
+persp3d(x = md_dis, y =md_dis, z = res$krausCov, col="skyblue", zlim = c(-1,5))
+```
