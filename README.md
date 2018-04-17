@@ -14,13 +14,11 @@ library("devtools")
 install_github("stefanrameseder/PartiallyFD")
 library("PartiallyFD")
 ```
-### Provide Data
+## Load data 
 ```r
 data(log_partObsBidcurves)
 attach(log_partObsBidcurves)
-```
-## Load data 
-```r
+
 combinedNEG <- cbind(log_bc_fds[["NEG_HT"]], log_bc_fds[["NEG_NT"]])
 
 matplot(x = md_dis, y=combinedNEG, ylim = c(0,10), # dim(combinedNEG)
@@ -38,7 +36,7 @@ matplot(x = md_dis, y=combinedNEG_woOutlier, ylim = c(0,10), # dim(combinedNEG)
         ylab = "", xaxt = "n", yaxt = "n", lty = "solid")
 
 ```
-## Exploratory Data Analysis (Figure 2)
+# Exploratory Data Analysis (Figure 2)
 ```r
 # "stable" domain [400MW, 1200MW)
 d_max       <- which.min(md_dis < 1200)
@@ -83,12 +81,12 @@ legend("topleft", legend = c("High-Price Cluster", "Low-Price Cluster", "Zero-Fu
        col=c(alpha("red",1), alpha("blue",1), alpha("darkorange",1)), bty="n")
 dev.off()
 ```
-### Test Normality in High-Price Cluster
+### Test for Normality in High-Price Cluster
 ```r
 ks.test(PC_scores_red[clust_vec==2], "pnorm", mean(PC_scores_red[clust_vec==2]), sd(PC_scores_red[clust_vec==2]))
 ```
 
-### Reduce Sample by Low-Price and Zero-Function Clusters
+### Reduce Sample by excluding Low-Price and Zero-Function Clusters
 ```r
 reducedDomSample <- combinedNEG_woOutlier[ , !scoreIndicesProbMass]
 combinedNEG_woOutlier <- reducedDomSample[ , !scoreIndicesClust]
@@ -104,7 +102,7 @@ scoreIndicesClust <- clust_vec==1
 paste0("Point mass at Zero: ",sum(scoreIndicesProbMass) ," and Low-Price Cluster:", sum(scoreIndicesClust))
 ```
 
-## Application 
+# Application 
 ```r
 maxBasisLength 		<- 51		# The Basis Selection Criterion in BIC 
 basisSel		<- "Med" 	# The Basis Selection Criterion in BIC 
@@ -137,7 +135,7 @@ krausCI_plus    <- res$krausMean + CISummand
 krausCI_minus   <- res$krausMean - CISummand
 ```
 
-### Figure 3
+### Final Plot with Estimates (Figure 3)
 ```r
 scl.axs             <- 1.9
 p                   <- length(res$krausMean)
@@ -210,9 +208,8 @@ polygon(x = c(md_dis, rev(md_dis)),
 axis(side = 1, at = seq(xLim[1], xLim[2], 250),  labels =  paste0(seq(xLim[1], xLim[2], 250), " MW"), cex.axis = scl.axs)	
 axis(side = 2, at = seq(yLim[1], yLim[2], 2),  labels =  paste0(seq(yLim[1], yLim[2], 2)), cex.axis = scl.axs)	
 matplot(x = md_dis, y = combinedNEG, type = "l", col = PartiallyFD:::addAlpha("black", 0.3), ylim = yLim, xlim = xLim, lty = 1, add = TRUE)
-```						 
-### Additional figure: Covariance plots for both estimators
-```r
+
+## Plot Covariance Estimates
 # install.packages("rgl")
 library(rgl)
 persp3d(x = md_dis, y =md_dis, z = res$ftcCov, col="skyblue", zlim = c(-1,5))
