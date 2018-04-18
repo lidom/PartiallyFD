@@ -137,77 +137,71 @@ krausCI_minus   <- res$krausMean - CISummand
 
 ### Final Plot with Estimates (Figure 3)
 ```r
-scl.axs             <- 1.9
-p                   <- length(res$krausMean)
-p_seq               <- seq(1,p,8)
-p.cex               <- 1.2
-maxVals     	    <- apply(combinedNEG_woOutlier, 2, max, na.rm = TRUE)	
-
+p.cex 		<- 2
+p_seq 		<- seq(1,p,8)
+p_seq_main 	<- seq(1,p, 16)
+m
 
 layout(matrix(c(1,1,2), nrow = 1, ncol = 3, byrow = TRUE))
 par(mar=c(5.1, 5.1, 2.1, 1.1))
-matplot(x = 0, y = 0, type = "l", col = PartiallyFD:::addAlpha("black", 0.2), ylim = c(0, 10), xlim = c(0, 2500), lty = 1, xaxt = "n", yaxt = "n",
-        ylab = "Log Price [Log(Euro/MW)/week]", xlab = "Electricity Demand [MW]", cex.lab=scl.axs+0.45)
+matplot(x = 0, y = 0, 
+	type = "l", 
+	col = addAlpha("black", 0.2), 
+	ylim = c(0, 10), xlim = c(0, 2500), 
+	lty = 1, xaxt = "n", yaxt = "n", 
+	ylab = "Log Price [Log(Euro/MW)/week]", 
+	xlab = "Electricity Demand [MW]", 
+	cex.lab=scl.axs+0.45)
 
-for(i in 1:length(maxVals)){ # i = 283
-	ind <- which.max(combinedNEG_woOutlier[!is.na(combinedNEG_woOutlier[ ,i]),i])
-    if(ind !=1){
-		abline(v = md_dis[ind],lwd = 2 , col = "lightblue")
-	} 
-}
-matplot(x = md_dis, y = combinedNEG_woOutlier, type = "l", col = PartiallyFD:::addAlpha("black", 0.2), ylim = c(0, 10), lty = 1, add = TRUE)
+abline(v= d_t[["NEG_HT"]], col = "lightblue")
+matplot(x = md_dis, y = combinedNEG, type = "l", col = addAlpha("black", 0.2), ylim = c(0, 10), lty = 1, add = TRUE)
 
-points(x = md_dis[p_seq], y = res$ftcMean[p_seq], col = "blue", pch = 16, cex = p.cex)
+points(x = md_dis[p_seq_main], y = res$ftcMean[p_seq_main], col = "blue", pch = 16, cex = p.cex)
 lines(x = md_dis, y = res$ftcMean, col = "blue", lwd = 2)
-points(x = md_dis[p_seq], y = res$krausMean[p_seq], col = "darkred", pch = 18, cex = p.cex)
+points(x = md_dis[p_seq_main], y = res$krausMean[p_seq_main], col = "darkred", pch = 17, cex = p.cex)
 lines(x = md_dis, y = res$krausMean, col = "darkred", lwd = 2)
 
 polygon(x = c(md_dis, rev(md_dis)),
         y = c(ftcCI_plus, rev(ftcCI_minus)),
-        col = PartiallyFD:::addAlpha("blue", 0.2), border = "blue", lwd = 1)
+        col = addAlpha("blue", 0.2), border = "blue", lwd = 1)
 polygon(x = c(md_dis, rev(md_dis)),
         y = c(krausCI_plus, rev(krausCI_minus)),
-        col = PartiallyFD:::addAlpha("darkred", 0.2), border = "darkred", lwd = 1)
+        col = addAlpha("darkred", 0.2), border = "darkred", lwd = 1)
 
-yLim <- c(4,10)
+yLim <- c(5,10)
 xLim <- c(1750, 2500)
 
 rect(xLim[1],yLim[1],xLim[2],yLim[2],col = rgb(0.5,0.5,0.5,1/4))
 axis(side = 1, at = seq(0, 2500, 500),  labels =  paste0(seq(0, 2500, 500), " MW"), cex.axis = scl.axs)	
 axis(side = 2, at = seq(0, 10, 2),  labels =  paste0(seq(0, 10, 2)), cex.axis = scl.axs)	
-legend(	"topleft", col = c("black", "darkred", "blue", "lightblue"), inset = 0.01, cex=scl.axs+ 0.4, pt.cex = scl.axs,
+legend(	"topleft", col = c("black", "darkred", "blue", "lightblue"), inset = 0.01, cex=scl.axs+ 0.4,
         lwd=c(1,2, 2, 3), lty = c("solid", "solid", "solid","solid"),
-        pch=c(NA,18,16, NA),  
+        pch=c(NA,17,16, NA), pt.cex=rep(p.cex*1.5,4),  
         legend = c(expression(paste(X[t])), expression(paste(hat(mu))), expression(paste(hat(mu)[FTC])), expression(paste(d[i]))))
-matplot(x = 0, y = 0, type = "l", col = PartiallyFD:::addAlpha("black", 0.2), ylim = c(0, 10), xlim = c(0, 2500), lty = 1, xaxt = "n", yaxt = "n",
+matplot(x = 0, y = 0, type = "l", col = addAlpha("black", 0.2), ylim = c(0, 10), xlim = c(0, 2500), lty = 1, xaxt = "n", yaxt = "n",
         ylab = "Log Price in (Log Euro/MW)/week", xlab = "Electricity Demand in MW", cex.lab=scl.axs+0.45, add = TRUE)
 
-
 par(mar=c(5.1, 3.1, 2.1, 2.1))		
-matplot(x = md_dis, y = combinedNEG, type = "l", col = PartiallyFD:::addAlpha("black", 0.2), lty = 1, 
+matplot(x = md_dis, y = combinedNEG, type = "l", col = addAlpha("black", 0.2), lty = 1, 
         xaxt = "n", yaxt = "n", ylim = yLim, xlim = xLim,
         ylab = "", xlab = "", cex.lab=scl.axs+0.45)
-for(i in 1:length(maxVals)){ # i = 283
-	ind <- which.max(combinedNEG_woOutlier[!is.na(combinedNEG_woOutlier[ ,i]),i])
-    if(ind !=1){
-		abline(v = md_dis[ind],lwd = 2 , col = "lightblue")
-	} 
-}
+abline( v= d_t[["NEG_HT"]], col = "lightblue", lwd = 1.5)
 
 points(x = md_dis[p_seq], y = res$ftcMean[p_seq], col = "blue", pch = 16, cex = p.cex)
 lines(x = md_dis, y = res$ftcMean, col = "blue", lwd = 2)
-points(x = md_dis[p_seq], y = res$krausMean[p_seq], col = "darkred", pch = 18, cex = p.cex)
+points(x = md_dis[p_seq], y = res$krausMean[p_seq], col = "darkred", pch = 17, cex = p.cex)
 lines(x = md_dis, y = res$krausMean, col = "darkred", lwd = 2)
 
 polygon(x = c(md_dis, rev(md_dis)),
         y = c(ftcCI_plus, rev(ftcCI_minus)),
-        col = PartiallyFD:::addAlpha("blue", 0.2), border = "blue", lwd = 1)
+        col = addAlpha("blue", 0.2), border = "blue", lwd = 1)
 polygon(x = c(md_dis, rev(md_dis)),
         y = c(krausCI_plus, rev(krausCI_minus)),
-        col = PartiallyFD:::addAlpha("darkred", 0.2), border = "darkred", lwd = 1)
+        col = addAlpha("darkred", 0.2), border = "darkred", lwd = 1)
 axis(side = 1, at = seq(xLim[1], xLim[2], 250),  labels =  paste0(seq(xLim[1], xLim[2], 250), " MW"), cex.axis = scl.axs)	
-axis(side = 2, at = seq(yLim[1], yLim[2], 2),  labels =  paste0(seq(yLim[1], yLim[2], 2)), cex.axis = scl.axs)	
-matplot(x = md_dis, y = combinedNEG, type = "l", col = PartiallyFD:::addAlpha("black", 0.3), ylim = yLim, xlim = xLim, lty = 1, add = TRUE)
+axis(side = 2, at = seq(yLim[1], yLim[2], 1),  labels =  paste0(seq(yLim[1], yLim[2], 1)), cex.axis = scl.axs)	
+matplot(x = md_dis, y = combinedNEG, type = "l", col = addAlpha("black", 0.3), ylim = yLim, xlim = xLim, lty = 1, add = TRUE)
+
 
 ## Plot Covariance Estimates
 # install.packages("rgl")
