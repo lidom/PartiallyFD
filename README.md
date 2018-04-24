@@ -1,5 +1,9 @@
 # PartiallyFD
-This repository contains a R package for the Paper "Partially Observed Functional Data: The Case of Systematically Missing" by Dominik Liebl and Stefan Rameseder. Below, we present a demo for the installation of the package and the application of the estimator. 
+This repository contains an R package for the Paper "Partially Observed Functional Data: The Case of Systematically Missing" by Dominik Liebl and Stefan Rameseder. Below, we present a demo for the installation of the package and the application of the estimator. 
+
+The underlying statistical method is described in:  
+[Partially Observed Functional Data: The Case of Systematically Missing](https://arxiv.org/abs/1711.07715)  
+by Dominik Liebl and Stefan Rameseder (arXiv:1711.07715)
 
 ## Installation of required packages
 ```r
@@ -36,7 +40,7 @@ matplot(x = md_dis, y=combinedNEG_woOutlier, ylim = c(0,10), # dim(combinedNEG)
         ylab = "", xaxt = "n", yaxt = "n", lty = "solid")
 
 ```
-# Exploratory Data Analysis (Figure 2)
+## Exploratory Data Analysis (Figure 2)
 ```r
 # "stable" domain [400MW, 1200MW)
 d_max       <- which.min(md_dis < 1200)
@@ -102,7 +106,7 @@ scoreIndicesClust <- clust_vec==1
 paste0("Point mass at Zero: ",sum(scoreIndicesProbMass) ," and Low-Price Cluster:", sum(scoreIndicesClust))
 ```
 
-# Application 
+## Application 
 ```r
 maxBasisLength 		<- 51		# The Basis Selection Criterion in BIC 
 basisSel		<- "Med" 	# The Basis Selection Criterion in BIC 
