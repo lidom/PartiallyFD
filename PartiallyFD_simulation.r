@@ -51,8 +51,7 @@ suppliedSettings <- list(sd_part = sd_part, xi_1_d_cor = xi_1_d_cor, d_var = d_v
 replications		<- 500
 
 
-ns                  <- c(50) # Different n's
-#ns                  <- c(50, 150, 250, 500) # Different n's
+ns                  <- c(50, 150, 250, 500) # Different n's
 
 require(parallel) 		# for parallel spline smoothing
 
