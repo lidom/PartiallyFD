@@ -20,7 +20,7 @@ sd 				<- sqrt(seq.ev[1])  # standard deviation of normal marginal; in our case 
 xi_means 		<- c(5,2,0,0,0)
 mean_dom		<- 1 # mean of right domain border
 prob 			<- 0.9 # binomial probability for normal marginal
-basis 			<- c(BSpline = "bspline", Fourier = "fourier", Monomial = "monomial", Power = "power")
+basis 			    <- c(BSpline = "bspline", Fourier = "fourier", Monomial = "monomial", Power = "power")
 base            <- basis[2] # Just for Fourier
 x_var			<- sum(seq.ev)
 alpha			<- 0.05 # significance level for bootstraps
@@ -33,14 +33,14 @@ name			<- names(base)
 f_stat 			<- PartiallyFD:::f_stat2 # Choose the test statistic function for Romano Wolf
 
 b_choice		<- "Med" # or Max # The choice method for the overall basis selection
-maxAllowedBasis	<- 51 # The number of maximal allowed overall basis length
+maxAllowedBasis	    <- 51 # The number of maximal allowed overall basis length
 basis_seq 		<- seq(3,maxAllowedBasis,2) # possible basis lengths
 derFds			<- FALSE # Should the estimator be used with the derivatives of the functional data sample or with the basis projection
-percentageCompDom<- 0.02 # how many functions should be forced to be observed over the whole domain
+percentageCompDom   <- 0.02 # how many functions should be forced to be observed over the whole domain
 sd_part 		<- 1 # Which part of the d s should be trnaformed to 0.5 or 1 (here 100%)
 xi_1_d_cor		<- 0.995 # the correlation in the truncated normal case
 d_var 			<- 1 # The variance of d in the truncated normal cases
-sigma_sc        <- 3 # the variance of the sigma in the transformation1 case
+sigma_sc            <- 3 # the variance of the sigma in the transformation1 case
 positions 		<- c(0.625, 0.75, 0.875, 1)
 DGP_names		<- c("SD","SC", "ID", "IC") 
 ver             <- "FirstSimulation" # Name of dataset to save
