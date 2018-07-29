@@ -11,7 +11,7 @@ library("PartiallyFD")
 ##########################################################################################
 ## Generate Functional Data:
 p        		<- 501 # Number of evaluation points per function
-comp_dom    	<- seq(from = 0, to = 1,len = p) # Seq. of equidistant evaluation points for complete domain
+comp_dom        <- seq(from = 0, to = 1,len = p) # Seq. of equidistant evaluation points for complete domain
 small_dom		<- comp_dom[ comp_dom <= 0.5 ] # Seq. of equidistant evaluation points for small domain
 nbasis_dgp 		<- 5   # Number of basis functions
 nbasis_est 		<- 5  # Number of basis functions for estimation process
