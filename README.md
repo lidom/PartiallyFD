@@ -42,9 +42,9 @@ matplot(x = md_dis, y=combinedNEG_woOutlier, ylim = c(0,10), # dim(combinedNEG)
 ```
 ## Exploratory Data Analysis (Figure 2)
 ```r
-# "stable" domain [400MW, 1200MW)
-d_max       <- which.min(md_dis < 1200)
-d_min       <- which.max(md_dis >= 400)
+# Find components on "fully observed" domain [MW, 1830MW)
+d_max       <- which.min(md_dis < 1830)
+d_min       <- which.max(md_dis >= 0)
 
 # Calculate Eigenvectors and Scores
 X_mat       <- combinedNEG_woOutlier[d_min:d_max, ]
@@ -56,12 +56,15 @@ c(cumsum(eigen_obj$values)/sum(eigen_obj$values))[1:5]
 # Standardizing to L2-norm == 1 (assuming [a,b]=[0,1])
 eigenvec_1  <- eigen_obj$vectors[,1] * sqrt(length(d_min:d_max))
 eigenvec_1  <- eigenvec_1 * sign(sum(eigenvec_1))
+PC_scores   <- c(eigenvec_1 %*% X_cent_mat)/length(d_min:d_max)
 
 # Remove point-mass on minimal PC-scores (zero-functions)
 quantile(PC_scores, seq(0, 0.1, 0.005))
 thr         <- -5.16
-scoreIndicesProbMass <- PC_scores <= thr; 
+scoreIndicesProbMass <- PC_scores <= thr
 PC_scores_red <- PC_scores[PC_scores > thr]
+
+# Cluster PC_scores_red
 mclust.obj <- densityMclust(data = PC_scores_red, G=2) 
 clust_vec  <- mclust.obj$classification
 
@@ -85,9 +88,15 @@ legend("topleft", legend = c("High-Price Cluster", "Low-Price Cluster", "Zero-Fu
        col=c(alpha("red",1), alpha("blue",1), alpha("darkorange",1)), bty="n")
 dev.off()
 ```
-### Test for Normality in High-Price Cluster
+### Compare the distribution with the Gaussian density
 ```r
-ks.test(PC_scores_red[clust_vec==2], "pnorm", mean(PC_scores_red[clust_vec==2]), sd(PC_scores_red[clust_vec==2]))
+## Histogram and Gaussian density:
+g           <- PC_scores_red[clust_vec==2]
+m           <- mean(g)
+std         <- sqrt(var(g))
+hist(g, prob=TRUE, breaks = 8, ylim=c(-0, 0.8), xlim = c(-.5,3), main="Histogram", xlab="")
+curve(dnorm(x, mean=m, sd=std), lwd=2, add=TRUE, yaxt="n")
+dev.off()
 ```
 
 ### Reduce Sample by excluding Low-Price and Zero-Function Clusters
