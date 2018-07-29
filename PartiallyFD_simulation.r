@@ -16,7 +16,7 @@ small_dom		<- comp_dom[ comp_dom <= 0.5 ] # Seq. of equidistant evaluation point
 nbasis_dgp 		<- 5   # Number of basis functions
 nbasis_est 		<- 5  # Number of basis functions for estimation process
 seq.ev   		<- seq(from = 10, to = 2, len = nbasis_dgp) # Seq. of eigenvalues or variances
-sd 				<- sqrt(seq.ev[1])  # standard deviation of normal marginal; in our case the same as the first score
+sd 			<- sqrt(seq.ev[1])  # standard deviation of normal marginal; in our case the same as the first score
 xi_means 		<- c(5,2,0,0,0)
 mean_dom		<- 1 # mean of right domain border
 prob 			<- 0.9 # binomial probability for normal marginal
