@@ -48,7 +48,7 @@ ver             <- "FirstSimulation" # Name of dataset to save
 # The Supplied Setting list for all DGPs
 suppliedSettings <- list(sd_part = sd_part, xi_1_d_cor = xi_1_d_cor, d_var = d_var, sigma_sc = sigma_sc)
 
-replications		<- 1
+replications		<- 500
 
 
 ns                  <- c(50) # Different n's
