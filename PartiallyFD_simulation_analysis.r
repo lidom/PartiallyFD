@@ -2,6 +2,7 @@
 ##########################################################################################
 ## Supplement for "Partially Observed Functional Data: The Case of Systematically Missing"
 ## by Dominik Liebl & Stefan Rameseder						            
+## Analyse the results from the predecessing simulation
 
 
 # Need parameters for version since all files saved before will be loaded here
