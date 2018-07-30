@@ -16,6 +16,7 @@ library("devtools")
 ### Installation of _PartiallyFD_-Package
 ```r
 install_github("stefanrameseder/PartiallyFD")
+# install("PartiallyFD") # For installing locally
 library("PartiallyFD")
 ```
 ## Load data 
@@ -42,7 +43,7 @@ matplot(x = md_dis, y=combinedNEG_woOutlier, ylim = c(0,10), # dim(combinedNEG)
 ```
 ## Exploratory Data Analysis (Figure 2)
 ```r
-# Find components on "fully observed" domain [MW, 1830MW)
+# Find components on "fully observed" domain [0 MW, 1830 MW]
 d_max       <- which.min(md_dis < 1830)
 d_min       <- which.max(md_dis >= 0)
 
@@ -68,7 +69,8 @@ PC_scores_red <- PC_scores[PC_scores > thr]
 mclust.obj <- densityMclust(data = PC_scores_red, G=2) 
 clust_vec  <- mclust.obj$classification
 
-par(mfrow=c(1,1), mar=c(4.5,4,2.5,1)+0.1, family = "sans")
+# Figure 2
+par(mfrow=c(1,2), mar=c(4.5,4,2.5,1)+0.1, family = "sans")
 plotDensityMclust1(mclust.obj, xlab="First FPC-Scores (99.8% Explained Variance)", main="")
 mtext(text = "Normal Mixture Cluster Result", side = 3, line = 1.25, cex=1.2)
 hist(PC_scores_red, add=TRUE, freq = FALSE, breaks = 12)
@@ -86,11 +88,7 @@ legend("topleft", legend = c("High-Price Cluster", "Low-Price Cluster", "Zero-Fu
        pch=c(21,22,23), 
        pt.bg = c("red", "blue", "darkorange"), 
        col=c("red", "blue", "darkorange"), bty="n")
-dev.off()
-```
-### Compare the distribution with the Gaussian density
-```r
-## Histogram and Gaussian density:
+
 g           <- PC_scores_red[clust_vec==2]
 m           <- mean(g)
 std         <- sqrt(var(g))
