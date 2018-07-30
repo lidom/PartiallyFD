@@ -2,6 +2,7 @@
 ##########################################################################################
 ## Supplement for   "Partially Observed Functional Data: The Case of Systematically Missing"
 ## by Dominik Liebl & Stefan Rameseder
+## Generate partially observed functional data from different DGPs and apply estimators
 
 rm(list = ls())
 library("devtools")
