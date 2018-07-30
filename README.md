@@ -5,10 +5,6 @@ The underlying statistical method is described in:
     [Partially Observed Functional Data: The Case of Systematically Missing](https://arxiv.org/abs/1711.07715)  
 by Dominik Liebl and Stefan Rameseder (arXiv:1711.07715)
 
-Please note that we also provide .r files to reproduce our simulation and the analysis (with many addiotional KPIs):
-- PartiallyFD_simulation.r: A full list of possible meta parameter together with a parallelized simulation/estimation environment
-- PartiallyFD_simulation_analysis.r: A fully automatic analysis of the simulated data
-
 ## Installation of required packages
 ```r
 install.packages("devtools")
@@ -20,6 +16,7 @@ library("devtools")
 ### Installation of _PartiallyFD_-Package
 ```r
 install_github("stefanrameseder/PartiallyFD")
+# install("PartiallyFD") # For installing locally
 library("PartiallyFD")
 ```
 ## Load data 
@@ -46,7 +43,7 @@ matplot(x = md_dis, y=combinedNEG_woOutlier, ylim = c(0,10), # dim(combinedNEG)
 ```
 ## Exploratory Data Analysis (Figure 2)
 ```r
-# Find components on "fully observed" domain [MW, 1830MW)
+# Find components on "fully observed" domain [0 MW, 1830 MW]
 d_max       <- which.min(md_dis < 1830)
 d_min       <- which.max(md_dis >= 0)
 
@@ -64,16 +61,17 @@ PC_scores   <- c(eigenvec_1 %*% X_cent_mat)/length(d_min:d_max)
 
 # Remove point-mass on minimal PC-scores (zero-functions)
 quantile(PC_scores, seq(0, 0.1, 0.005))
-thr         <- -5.16
+thr                  <- -5.16
 scoreIndicesProbMass <- PC_scores <= thr
-PC_scores_red <- PC_scores[PC_scores > thr]
+PC_scores_red        <- PC_scores[PC_scores > thr]
 
 # Cluster PC_scores_red
 mclust.obj <- densityMclust(data = PC_scores_red, G=2) 
 clust_vec  <- mclust.obj$classification
 
-par(mfrow=c(1,1), mar=c(4.5,4,2.5,1)+0.1, family = "sans")
-plotDensityMclust1(mclust.obj, xlab="First FPC-Scores (99.8% Explained Variance)", main="")
+# Figure 2
+par(mfrow=c(1,2), mar=c(4.5,4,2.5,1)+0.1, family = "sans")
+plotDensityMclust1(mclust.obj, xlab="First FPC Scores (98.7% Explained Variance)", main="")
 mtext(text = "Normal Mixture Cluster Result", side = 3, line = 1.25, cex=1.2)
 hist(PC_scores_red, add=TRUE, freq = FALSE, breaks = 12)
 points(x =              PC_scores_red[clust_vec==2], 
@@ -90,16 +88,13 @@ legend("topleft", legend = c("High-Price Cluster", "Low-Price Cluster", "Zero-Fu
        pch=c(21,22,23), 
        pt.bg = c("red", "blue", "darkorange"), 
        col=c("red", "blue", "darkorange"), bty="n")
-dev.off()
-```
-### Compare the distribution with the Gaussian density
-```r
-## Histogram and Gaussian density:
+# Histogram
 g           <- PC_scores_red[clust_vec==2]
 m           <- mean(g)
 std         <- sqrt(var(g))
-hist(g, prob=TRUE, breaks = 8, ylim=c(-0, 0.8), xlim = c(-.5,3), main="Histogram", xlab="")
-curve(dnorm(x, mean=m, sd=std), lwd=2, add=TRUE, yaxt="n")
+hist(g, prob=TRUE, breaks = 8, ylim=c(-0, 0.8), xlim = c(-.5,3), main="", xlab="First FPC Scores (98.7% Explained Variance)")
+mtext(text = "Histogram (High-Price Cluster)", side = 3, line = 1.25, cex=1.2)
+curve(dnorm(x, mean=m, sd=std), lwd=2, add=TRUE, yaxt="n"); box()
 dev.off()
 ```
 
@@ -120,10 +115,10 @@ combinedNEG_woOutlier_der <- reducedDomSample[ , !scoreIndicesClust]
 
 ## Application 
 ```r
-maxBasisLength 		<- 51		# The Basis Selection Criterion in BIC 
+maxBasisLength 	<- 51		# The Basis Selection Criterion in BIC 
 basisSel		<- "Med" 	# The Basis Selection Criterion in BIC 
-B			<- 1000 	# Number of Bootstrap Replications
-basis_choice		<- "fourier"# The basis where the functions are projected onto
+B			    <- 1000 	# Number of Bootstrap Replications
+basis_choice	<- "fourier"# The basis where the functions are projected onto
 res 			<- calcFTC(fds = combinedNEG_woOutlier, comp_dom = md_dis,
                   basis_seq = seq(3,maxBasisLength,2), base = basis_choice,
                   maxBasisLength = maxBasisLength, basisChoice = basisSel,
@@ -157,7 +152,7 @@ scl.axs         <- 1.9
 p               <- length(res$krausMean)
 p_seq           <- seq(1,p,8)
 p.cex           <- 1.2
-maxVals     		<- apply(combinedNEG_woOutlier, 2, max, na.rm = TRUE)							 
+maxVals     	<- apply(combinedNEG_woOutlier, 2, max, na.rm = TRUE)							 
 
 
 layout(matrix(c(1,1,2), nrow = 1, ncol = 3, byrow = TRUE))
@@ -232,7 +227,3 @@ library(rgl)
 persp3d(x = md_dis, y =md_dis, z = res$ftcCov, col="skyblue", zlim = c(-1,5))
 persp3d(x = md_dis, y =md_dis, z = res$krausCov, col="skyblue", zlim = c(-1,5))
 ```
-
-
-
-
